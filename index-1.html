@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10151a">
+<title>Raccoon City: Notte del Contagio</title>
+<style>
+:root{--bg:#10151a;--pn:#182129;--ln:#2a3742;--tx:#e6e1d2;--mu:#8d9aa3;--am:#d9a441;--rd:#c8433a;--gr:#6fa36a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 2rem/1.1 Georgia,serif;margin:8px 0 4px;letter-spacing:.5px}
+h1 small{display:block;font:italic 400 1rem Georgia,serif;color:var(--am);margin-top:6px}
+.lead{color:var(--mu)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button,input{font:inherit;color:var(--tx);background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:10px 14px}
+button{cursor:pointer;text-align:left}
+button:hover{border-color:var(--am)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.chip{min-width:48px;text-align:center}.chip.on{background:var(--am);color:#10151a;border-color:var(--am);font-weight:700}
+input{width:100%;margin:5px 0}
+.go{background:var(--rd);border-color:var(--rd);font-weight:700;margin-top:12px}
+.bar{display:flex;justify-content:space-between;color:var(--mu);font-size:.85rem;margin-bottom:10px}
+.party{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.pc{background:var(--pn);border-left:4px solid var(--gr);padding:8px 10px;border-radius:4px}
+.pc.h1{border-color:var(--am)}.pc.h2{border-color:var(--rd)}.pc.h3{border-color:#444;opacity:.55}
+.pc b{display:block}.pc span{font-size:.8rem;color:var(--mu)}
+.pips{display:flex;gap:4px;margin-top:5px}.pips i{width:22px;height:5px;background:var(--ln);border-radius:2px}
+.pips i.f{background:var(--rd)}
+.story{font:1.08rem/1.7 Georgia,serif;background:var(--pn);padding:18px;border-radius:6px;border:1px solid var(--ln)}
+.tag{display:inline-block;font:700 .75rem system-ui;padding:2px 8px;border-radius:3px;margin-bottom:8px;color:#10151a}
+.t-ok{background:var(--gr)}.t-ko{background:var(--am)}.t-dead{background:var(--rd);color:#fff}
+.cnt{font-size:.75rem;color:var(--mu);text-align:right;margin-top:6px;font-family:system-ui}
+.q{margin:18px 0 8px;font-weight:700;color:var(--am)}
+.opts{display:grid;gap:8px}
+.inv{margin-top:22px;border-top:1px solid var(--ln);padding-top:12px}
+.inv h3{margin:0 0 6px;font-size:.95rem;color:var(--mu)}
+.inv p{margin:2px 0}.it{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0}
+.it button{padding:4px 10px}
+
+html{-webkit-text-size-adjust:100%}
+body{min-height:100dvh;-webkit-tap-highlight-color:transparent}
+main{padding:max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+h1{font-size:clamp(1.6rem,8vw,2rem)}
+button,input{min-height:46px;touch-action:manipulation}
+input{font-size:16px}
+.chips{display:grid;grid-template-columns:repeat(4,1fr)}
+#names{display:grid;grid-template-columns:1fr;gap:0 8px}
+.story{padding:14px;font-size:1rem}
+.opts button{padding:14px}
+.party{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pc{min-width:0;min-height:0;padding:6px 6px 6px 8px;text-align:left}
+.pc b{font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc span{font-size:.66rem;line-height:1.2;display:block}
+.pc.cur{box-shadow:0 0 0 2px var(--am)}.pc.sel{background:#243440}
+.pips i{flex:1;width:auto;height:4px}
+.wp{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--ln);padding:4px 0}
+.it{justify-content:space-between;flex-wrap:nowrap;border-bottom:1px solid var(--ln);padding:2px 0}
+.it button{padding:8px 14px;min-height:40px}
+.inv .row button{flex:1 1 40%;text-align:center}
+.alt{border-style:dashed}
+.hint{font-size:.78rem;color:var(--mu)}
+@media(min-width:560px){#names{grid-template-columns:1fr 1fr}.chips{display:flex}}
+.ai,.aiw{margin-top:10px;font-size:.85rem;font-style:italic;color:var(--mu)}
+#aiM{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:8px;width:100%}
+</style></head><body><main id="app"></main>
+<script>
+const BAG=new WeakMap(),R=a=>{let b=BAG.get(a);if(!b||!b.r.length){const r=a.map((_,i)=>i);for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}if(b&&r.length>1&&r[r.length-1]===b.l){[r[0],r[r.length-1]]=[r[r.length-1],r[0]]}b={r,l:b?b.l:-1};BAG.set(a,b)}const i=b.r.pop();b.l=i;return a[i]},app=document.getElementById('app');
+const ST=["In salute","Lievemente ferito","Gravemente ferito","Morto"];
+const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const LOC=[["Le strade di Raccoon City sono avvolte dalla nebbia e dalle auto in fiamme.","Un semaforo lampeggia su un incrocio pieno di relitti e sangue secco.","Un autobus ribaltato blocca la via, con i finestrini coperti di mani insanguinate.","Cartelli di evacuazione sventolano tra i cadaveri sull'asfalto.","Un vicolo stretto puzza di rifiuti e di carne in decomposizione.","La fontana della piazza è tinta di rosso, e le sirene suonano a vuoto.","Un negozio di armi saccheggiato ha la serranda mezza sollevata.","Il fumo di un incendio lontano copre le stelle sopra i tetti."],["L'atrio della stazione di polizia è buio, con le luci d'emergenza che lampeggiano sui muri sporchi di sangue.","Nella stazione di polizia le scrivanie sono rovesciate e le radio gracchiano nel vuoto.","Nell'archivio della polizia gli schedari sono aperti e i fogli svolazzano nell'aria.","Le celle della stazione sono spalancate, e le sbarre portano segni di artigli.","Nella sala armi della stazione mancano quasi tutti i fucili dalle rastrelliere.","Un corridoio della stazione è coperto di bossoli e di cartucce vuote.","Sul tetto della stazione un faro ruota lento e illumina il cortile pieno di ombre.","L'ufficio del comandante è sottosopra, con una mappa della città macchiata di sangue."],["Le fogne gocciolano di liquami e di qualcosa di più denso.","Una passerella scivolosa attraversa un canale d'acqua nera, nelle fogne.","Un tunnel delle fogne è invaso da una nebbiolina verdastra e dolciastra.","Le pareti delle fogne pulsano di muffa fosforescente.","Una grata arrugginita scricchiola sopra un pozzo senza fondo.","Nelle fogne l'eco dei passi torna indietro, come se qualcuno vi seguisse.","Un vecchio impianto idraulico sibila e sputa vapore bollente dalle condotte.","Tra i condotti scorre una schiuma bianca, di chiara origine chimica."],["I corridoi dell'ospedale sono pieni di barelle abbandonate e di macchie scure.","In ospedale una flebo dondola ancora da un'asta, e nessuno risponde ai vostri richiami.","La sala operatoria ha ancora le luci accese sul tavolo, vuoto e macchiato.","L'obitorio è aperto: diversi cassetti sono stati forzati dall'interno.","Nel reparto pediatrico giocattoli sparsi e disegni sui muri raccontano un'evacuazione frettolosa.","L'ascensore dell'ospedale è bloccato tra due piani, con un ronzio sinistro.","La farmacia dell'ospedale è a soqquadro, con fiale rotte sul pavimento.","Un altoparlante ripete un avviso di quarantena, sempre più distorto."],["Il laboratorio Umbrella è un labirinto di vetro e acciaio, con un allarme che pulsa in rosso.","Dietro le teche rotte del laboratorio Umbrella restano sagome immobili e provette frantumate.","Nel laboratorio una porta blindata si apre e si richiude a intermittenza.","Una sala di contenimento del laboratorio ha il vetro crepato da un colpo enorme.","Monitor lampeggianti mostrano cifre incomprensibili e un conto alla rovescia.","Il freddo di una cella frigorifera del laboratorio avvolge il gruppo in una nube bianca.","Un corridoio del laboratorio è tappezzato di badge insanguinati e camici strappati.","Un ascensore di servizio del laboratorio scende lentamente verso livelli sotterranei."],["La stazione ferroviaria è la via di fuga: un treno merci attende sul binario 3.","Sulla banchina il treno merci fischia piano, ma l'oscurità tra voi e la locomotiva si muove.","Sotto la tettoia della stazione i tabelloni degli orari lampeggiano senza senso.","Vagoni deragliati ingombrano i binari, e il metallo geme sotto il vento.","Nella sala d'attesa restano valigie aperte e scarpe abbandonate.","Una leva di scambio arrugginita separa il vostro binario da quello della salvezza.","Il fischio del treno copre per un attimo i lamenti dei morti sulla banchina.","Dal ponte pedonale si scorgono le luci della locomotiva, ancora accesa."]];
+const LN=["Strade di Raccoon City","Stazione di polizia","Fogne","Ospedale","Laboratorio Umbrella","Stazione ferroviaria"];
+const TH=[{w:"lo zombi",t:["Un gemito nel buio: {n} scorge un branco di zombi che barcolla verso il gruppo.","Uno zombi si stacca dal muro e si trascina verso {n}, le mandibole che scattano.","Una mano marcia afferra la caviglia di {n} da sotto un cumulo di macerie.","Degli zombi avanzano lenti in fila, e uno di loro è già a un passo da {n}."]},{w:"i cani infetti",t:["Un ringhio basso. Dei cani infetti, con la pelle scorticata, scattano verso {n}.","Zampe sul pavimento: un branco di cani infetti circonda {n}.","Un cane infetto sfonda una finestra e piomba su {n}.","Latrati rabbiosi: dei cani infetti tagliano la strada a {n}."]},{w:"il Licker",t:["Dal soffitto pende una lunga lingua: {n} si blocca mentre un Licker fiuta l'aria.","Un Licker, cieco ma letale, striscia sulla parete sopra {n}.","Un tonfo viscido: un Licker atterra alle spalle di {n}.","Artigli e una lingua: un Licker scatta verso {n} senza un suono."]},{w:"l'Hunter",t:["Artigli sul metallo. Un Hunter balza davanti a {n}, gli occhi gialli fissi sul gruppo.","Un Hunter cala dall'alto e atterra a un passo da {n}.","Un sibilo rettile: un Hunter emerge dal buio e punta {n}.","Un Hunter salta tra le macerie e si lancia contro {n}."]},{w:"i corvi infetti",t:["Uno stormo di corvi infetti si alza gracchiando e punta {n}.","Ali nere e occhi rossi: dei corvi infetti piombano su {n}.","Dei corvi infetti irrompono da una finestra rotta e assalgono {n}.","Un gracchiare assordante: i corvi infetti scendono in picchiata su {n}."]},{w:"i ragni giganti",t:["Dal buio scendono ragni giganti, e uno sfiora il volto di {n}.","Una ragnatela si muove: dei ragni giganti strisciano verso {n}.","Un ragno gigante cala dal soffitto sul suo filo, proprio davanti a {n}.","Zampe pelose sul muro: dei ragni giganti accerchiano {n}."]},{w:"lo zombi corazzato",t:["Un agente zombificato con giubbotto antiproiettile avanza verso {n}, impassibile.","Un ex militare infetto, ancora in armatura, sbarra la strada a {n}.","Uno zombi corazzato sfonda una porta e si getta su {n}.","Passi metallici: uno zombi corazzato avanza lento verso {n}."]},{w:"la pianta carnivora",t:["Radici e viticci si muovono: una pianta carnivora mutante si protende verso {n}.","Un odore dolciastro precede una pianta carnivora, che scatta verso {n}.","Tentacoli vegetali sbucano dal pavimento e afferrano {n}.","Una pianta carnivora gigante apre i suoi petali sopra {n}."]},{w:"i serpenti giganti",t:["Un sibilo secco: dei serpenti giganti si avvolgono attorno a {n}.","Un serpente gigante cala da un condotto e punta {n}.","Dei serpenti giganti sbucano dalle crepe e circondano {n}.","Un enorme serpente striscia nel buio verso {n}."]},{w:"le sanguisughe mutanti",t:["Delle sanguisughe mutanti si staccano dal soffitto e piovono su {n}.","Un tappeto di sanguisughe mutanti si muove sul pavimento verso {n}.","Una sanguisuga mutante grande come un cane si avventa su {n}.","Un risucchio viscido: delle sanguisughe mutanti assalgono {n}."]},{w:"gli zombi striscianti",t:["Degli zombi striscianti emergono dalle macerie e afferrano {n}.","Zombi senza gambe si trascinano a terra verso {n}.","Una mano scheletrica spunta dal pavimento e afferra {n}.","Gli zombi striscianti ammorbano l'aria e si avvicinano a {n}."]},{w:"il Chimera",t:["Un ronzio metallico: il Chimera, insetto mutante, scende dal soffitto su {n}.","Il Chimera, un ibrido di insetto e carne umana, si lancia su {n}.","Un artiglio affilato dal buio: il Chimera punta {n}.","Il Chimera spicca il volo e piomba su {n}."]},{w:"i pipistrelli infetti",t:["Uno stormo di pipistrelli infetti si stacca dal soffitto e assale {n}.","Un frullare di ali: dei pipistrelli infetti piombano su {n}.","Dei pipistrelli infetti escono da un condotto e puntano {n}.","Un ultrasuono assordante: i pipistrelli infetti circondano {n}."]},{w:"l'infermiere zombi",t:["Un infermiere zombi barcolla con una siringa in mano verso {n}.","Un infermiere zombi spinge una barella contro {n}.","Un infermiere zombi esce da uno sgabuzzino con un bisturi e punta {n}.","Un infermiere zombi, con il camice insanguinato, blocca {n}."]},{w:"la creatura mutata",t:["Un'ombra enorme si muove nel buio: una creatura mutata punta {n}.","Un lamento inumano: una creatura mutata scatta contro {n}.","Dalla teca infranta esce una creatura mutata e punta {n}.","Un ruggito basso: una creatura mutata sbarra la strada a {n}."]}];
+const BOSS={w:"il Tyrant",t:["Il pavimento vibra. Il Tyrant, un colosso in cappotto nero, sfonda il muro e punta {n}: è l'ultimo ostacolo."]};
+const OP=["Il gruppo riprende fiato.","Un silenzio innaturale cala sul gruppo.","Le batterie delle torce iniziano a calare.","In lontananza esplode qualcosa.","Una radio gracchia: «...uscita... a nord...».","Il tempo stringe.","Un odore di bruciato riempie l'aria.","Il gruppo si stringe e va avanti.","Il cuore batte forte, ma nessuno si ferma.","Un brivido scende lungo la schiena.","Il vento porta un gemito lontano.","Qualcuno sussurra di non voltarsi.","Le munizioni sembrano non bastare mai.","Le ombre si allungano sotto le luci tremolanti.","Una goccia cade nel silenzio, troppo forte.","Il gruppo si scambia uno sguardo teso.","Un'ombra attraversa il fondo del corridoio.","La stanchezza pesa, ma fermarsi è impossibile.","Un rombo lontano scuote il terreno.","Un cane abbaia, poi tace all'improvviso."];
+const TW=["Il rumore attira altre creature.","Un allarme scatta alle vostre spalle.","Le luci saltano per un istante.","Qualcosa cade dal soffitto.","Una porta sbatte in lontananza.","Il pavimento scricchiola sotto i piedi.","Una sirena lontana si spegne di colpo.","Un vetro va in frantumi poco distante.","Un fruscio arriva dal condotto sopra la testa.","L'odore di sangue si fa più forte.","Una torcia si spegne e il buio avanza.","Qualcuno, in lontananza, urla e poi tace.","Un lampo di luce rossa attraversa la stanza.","Il terreno trema per un istante.","Una radio si accende da sola, poi si spegne.","Le pareti sembrano restringersi.","Un rumore di passi pesanti si avvicina.","Una goccia di sangue cade dall'alto."];
+const INTRO=["Raccoon City, notte del contagio. Il vostro elicottero è precipitato e la città è in mano ai morti viventi.","Siete gli ultimi soccorritori: il convoglio è stato travolto e la città è in mano ai morti viventi.","Un messaggio radio vi ha attirati a Raccoon City. È una trappola: il contagio ha già inghiottito ogni strada.","Umbrella ha perso il controllo del virus. Vi svegliate in un vicolo, con poche armi e nessun piano."];
+const cb=(n,k)=>k?cb(n-1,k-1)*n/k:1;
+const K=[
+{k:'f',r:1,v:["Aprire il fuoco","Puntare l'arma e sparare","Fare fuoco senza esitare","Mirare con calma e premere il grilletto","Scaricare un colpo sul bersaglio","Attaccare a viso aperto"]},
+{k:'s',r:1,v:["Aggirare il nemico in silenzio","Muoversi nell'ombra senza fare rumore","Strisciare lungo il muro evitando lo scontro","Trattenere il fiato e passare oltre","Spegnere le torce e aspettare che si allontani","Scivolare via passo dopo passo"]},
+{k:'r',r:2,v:["Scappare verso l'uscita","Correre via a perdifiato","Lanciarsi in una fuga disperata","Ripiegare di corsa verso l'uscita più vicina","Dare le spalle al pericolo e non fermarsi","Cercare un varco e filare via"]},
+{k:'c',r:1,v:["Cercare qualcosa di utile nei dintorni","Frugare tra i detriti in cerca di rifornimenti","Rovistare in fretta nella stanza","Controllare cassetti e armadietti lì vicino","Ispezionare i dintorni: qualcosa può servire","Dare un'occhiata in giro per trovare munizioni o cure"]},
+{k:'b',r:1,v:["Barricarsi e temporeggiare","Bloccare la porta con un mobile","Alzare una barricata di fortuna","Rinchiudersi in una stanza e guadagnare tempo","Sbarrare l'ingresso e resistere","Trascinare qualcosa di pesante contro l'accesso"]},
+{k:'e',r:2,v:["Sfruttare l'ambiente contro il nemico","Usare ciò che c'è intorno come arma","Far crollare uno scaffale addosso al nemico","Colpire un barile o un tubo lì vicino","Attirare il nemico verso una trappola improvvisata","Far saltare qualcosa nelle vicinanze"]}];
+const KNIFE=["Affrontarlo con il coltello","Colpirlo con il coltello, corpo a corpo","Sguainare il coltello e attaccare","Chiudere la distanza con la lama","Affidarsi al coltello e sperare nel meglio"];
+const QP=["Cosa decide di fare {n}?","{n} ha pochi secondi: cosa fa?","Tocca a {n}. Qual è la mossa?","Gli occhi del gruppo sono su {n}: come agisce?","{n} deve scegliere, e in fretta. Che fa?","Cosa passa per la testa di {n}?","È il momento di {n}: quale strada prende?","{n} stringe i denti. Cosa tenta?"];
+const QB=["Il Tyrant è davanti a {n}. Ultima scelta: cosa fa?","Tutto si decide ora. Come affronta {n} il Tyrant?","{n} non può più tirarsi indietro. Qual è la mossa?","Il treno è vicino, ma il Tyrant no: cosa tenta {n}?"];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rollLen=()=>12+Math.floor((Math.random()+Math.random())*12.5);
+const OK={
+f:["{n} fa fuoco al momento giusto e riesce ad abbattere {w}.","{n} spara con precisione e riesce a fermare {w}. L'eco dello sparo rimbomba a lungo.","Un colpo secco, poi un altro: {n} riesce ad abbattere {w} e il gruppo può respirare.","Con sangue freddo, {n} mira e mette fuori combattimento {w}."],
+s:["{n} guida il gruppo nell'ombra e riesce a evitare {w}.","{n} fa segno di tacere e il gruppo supera {w} senza un rumore.","{n} spegne la torcia e tutti scivolano nel buio, eludendo {w}.","Un passo alla volta, trattenendo il fiato, {n} riesce a superare {w} senza farsi vedere."],
+r:["{n} apre un varco e il gruppo corre via, seminando {w}.","{n} spalanca una porta e tutti si lanciano nella fuga, lasciandosi alle spalle {w}.","Il gruppo corre a perdifiato dietro {n} e riesce a seminare {w}.","Un salto, una svolta e {n} trascina tutti in salvo, distanziando {w}."],
+c:["{n} trova un riparo e lascia indietro {w}.","{n} scova un nascondiglio dietro una parete crollata e riesce a depistare {w}.","Tra le macerie, {n} individua un passaggio laterale e il gruppo si mette al sicuro, lasciando indietro {w}.","{n} si infila in uno stanzino nascosto e trascina dentro gli altri, facendo perdere le tracce a {w}."],
+b:["{n} blocca l'ingresso con un mobile e il gruppo guadagna tempo contro {w}.","{n} sbarra la porta con tutto ciò che trova e riesce a tenere fuori {w}.","Con un tavolo e qualche catena, {n} costruisce una barricata che tiene lontano {w}.","La barricata di {n} regge: il gruppo guadagna minuti preziosi contro {w}."],
+e:["{n} sfrutta l'ambiente: un tubo esplode e ferma {w}.","{n} fa rovesciare uno scaffale carico di ferraglia e blocca {w}.","{n} colpisce un quadro elettrico: una scarica di scintille mette in difficoltà {w}.","{n} fa cedere una trave del soffitto e seppellisce {w} sotto le macerie."]};
+const KO=["Nello scontro con {w}, {n} incassa un colpo e il gruppo arretra a fatica.","{n} sbaglia i tempi e, nello scontro con {w}, viene colpito.","Un attimo di esitazione e {n} paga caro lo scontro con {w}: il colpo arriva dritto al bersaglio.","{n} scivola sul pavimento viscido e, nello scontro con {w}, subisce un colpo.","Il piano di {n} va a monte: il gruppo si ritira da {w}, ma {n} paga il prezzo con una ferita."];
+const KD=["Nello scontro con {w}, {n} cade a terra. Un urlo, poi solo silenzio: non si rialzerà più.","{n} non fa in tempo a reagire: nello scontro con {w} il colpo è fatale, e il gruppo può solo guardare.","Un ultimo sguardo al gruppo, poi il buio: {n} soccombe nello scontro con {w}.","Il colpo è troppo violento. {n} crolla nello scontro con {w} e il gruppo deve andare avanti senza voltarsi.","{n} resta indietro per coprire gli altri. Nello scontro con {w} non c'è più nulla da fare."];
+let S=null,NM=[];
+let SOLO=false;
+const SG={
+"Raccoon City, notte del contagio. Il vostro elicottero è precipitato e la città è in mano ai morti viventi.":"Raccoon City, notte del contagio. L'elicottero di {n} è precipitato e la città è in mano ai morti viventi.",
+"Siete gli ultimi soccorritori: il convoglio è stato travolto e la città è in mano ai morti viventi.":"L'ultimo convoglio di soccorso è stato travolto: {n} è solo, e la città è in mano ai morti viventi.",
+"Un messaggio radio vi ha attirati a Raccoon City. È una trappola: il contagio ha già inghiottito ogni strada.":"Un messaggio radio ha attirato {n} a Raccoon City. È una trappola: il contagio ha già inghiottito ogni strada.",
+"Umbrella ha perso il controllo del virus. Vi svegliate in un vicolo, con poche armi e nessun piano.":"Umbrella ha perso il controllo del virus. {n} si sveglia in un vicolo, con poche armi e nessun piano.",
+"In ospedale una flebo dondola ancora da un'asta, e nessuno risponde ai vostri richiami.":"In ospedale una flebo dondola ancora da un'asta, e nessuno risponde ai richiami.",
+"Il freddo di una cella frigorifera del laboratorio avvolge il gruppo in una nube bianca.":"Il freddo di una cella frigorifera del laboratorio avvolge ogni cosa in una nube bianca.",
+"Sulla banchina il treno merci fischia piano, ma l'oscurità tra voi e la locomotiva si muove.":"Sulla banchina il treno merci fischia piano, ma l'oscurità davanti alla locomotiva si muove.",
+"Una leva di scambio arrugginita separa il vostro binario da quello della salvezza.":"Una leva di scambio arrugginita separa questo binario da quello della salvezza.",
+"Nelle fogne l'eco dei passi torna indietro, come se qualcuno vi seguisse.":"Nelle fogne l'eco dei passi torna indietro, come se qualcuno camminasse a pochi passi di distanza.",
+"Un gemito nel buio: {n} scorge un branco di zombi che barcolla verso il gruppo.":"Un gemito nel buio: {n} scorge un branco di zombi che barcolla nella sua direzione.",
+"Artigli sul metallo. Un Hunter balza davanti a {n}, gli occhi gialli fissi sul gruppo.":"Artigli sul metallo. Un Hunter balza davanti a {n}, gli occhi gialli fissi sulla preda.",
+"Il gruppo riprende fiato.":"Un attimo di respiro, il primo da ore.",
+"Un silenzio innaturale cala sul gruppo.":"Un silenzio innaturale cala tutto intorno.",
+"Il gruppo si stringe e va avanti.":"Un passo dopo l'altro, si va avanti.",
+"Il gruppo si scambia uno sguardo teso.":"Lo sguardo corre teso da un'ombra all'altra.",
+"Il cuore batte forte, ma nessuno si ferma.":"Il cuore batte forte, ma non ci si ferma.",
+"Qualcuno sussurra di non voltarsi.":"Una voce nella testa sussurra di non voltarsi.",
+"Un allarme scatta alle vostre spalle.":"Un allarme scatta alle sue spalle.",
+"Gli occhi del gruppo sono su {n}: come agisce?":"Tutto dipende da {n}: come agisce?",
+"Un colpo secco, poi un altro: {n} riesce ad abbattere {w} e il gruppo può respirare.":"Un colpo secco, poi un altro: {n} riesce ad abbattere {w} e può respirare.",
+"{n} guida il gruppo nell'ombra e riesce a evitare {w}.":"{n} si muove nell'ombra e riesce a evitare {w}.",
+"{n} fa segno di tacere e il gruppo supera {w} senza un rumore.":"{n} trattiene il fiato e supera {w} senza un rumore.",
+"{n} spegne la torcia e tutti scivolano nel buio, eludendo {w}.":"{n} spegne la torcia e scivola nel buio, eludendo {w}.",
+"{n} apre un varco e il gruppo corre via, seminando {w}.":"{n} apre un varco e corre via, seminando {w}.",
+"{n} spalanca una porta e tutti si lanciano nella fuga, lasciandosi alle spalle {w}.":"{n} spalanca una porta e si lancia nella fuga, lasciandosi alle spalle {w}.",
+"Il gruppo corre a perdifiato dietro {n} e riesce a seminare {w}.":"{n} corre a perdifiato e riesce a seminare {w}.",
+"Un salto, una svolta e {n} trascina tutti in salvo, distanziando {w}.":"Un salto, una svolta e {n} si mette in salvo, distanziando {w}.",
+"Tra le macerie, {n} individua un passaggio laterale e il gruppo si mette al sicuro, lasciando indietro {w}.":"Tra le macerie, {n} individua un passaggio laterale e si mette al sicuro, lasciando indietro {w}.",
+"{n} si infila in uno stanzino nascosto e trascina dentro gli altri, facendo perdere le tracce a {w}.":"{n} si infila in uno stanzino nascosto e chiude la porta dietro di sé, facendo perdere le tracce a {w}.",
+"{n} blocca l'ingresso con un mobile e il gruppo guadagna tempo contro {w}.":"{n} blocca l'ingresso con un mobile e guadagna tempo contro {w}.",
+"La barricata di {n} regge: il gruppo guadagna minuti preziosi contro {w}.":"La barricata di {n} regge: sono minuti preziosi guadagnati contro {w}.",
+"Nello scontro con {w}, {n} incassa un colpo e il gruppo arretra a fatica.":"Nello scontro con {w}, {n} incassa un colpo e arretra a fatica.",
+"Il piano di {n} va a monte: il gruppo si ritira da {w}, ma {n} paga il prezzo con una ferita.":"Il piano di {n} va a monte: {n} si ritira da {w}, ma paga il prezzo con una ferita.",
+"{n} non fa in tempo a reagire: nello scontro con {w} il colpo è fatale, e il gruppo può solo guardare.":"{n} non fa in tempo a reagire: nello scontro con {w} il colpo è fatale, e nessuno può intervenire.",
+"Un ultimo sguardo al gruppo, poi il buio: {n} soccombe nello scontro con {w}.":"Un ultimo sguardo al cielo, poi il buio: {n} soccombe nello scontro con {w}.",
+"Il colpo è troppo violento. {n} crolla nello scontro con {w} e il gruppo deve andare avanti senza voltarsi.":"Il colpo è troppo violento. {n} crolla nello scontro con {w} e non ha più la forza di rialzarsi.",
+"{n} resta indietro per coprire gli altri. Nello scontro con {w} non c'è più nulla da fare.":"{n} resta indietro a fronteggiare il pericolo. Nello scontro con {w} non c'è più nulla da fare."
+};
+const R2=a=>{const t=R(a);return SOLO&&SG[t]||t};
+const aliveN=()=>S.p.filter(x=>x.h<3).length;
+
+/* ===== Estensioni: più varietà, scene di tregua senza nemici, stanze sicure ===== */
+OP.push("Le scarpe affondano in qualcosa di appiccicoso.","Una sirena antiaerea ulula, poi crolla in un singhiozzo.","Il sapore metallico del sangue resta in bocca.","Una cenere grigia cade lenta, come neve.","Ogni respiro sembra rimbombare più forte del precedente.","Un bagliore arancione tinge le nuvole a est.","Le gambe pesano come piombo.","Da qualche parte suona una musica, lenta e stonata.","Il tanfo di putrefazione si fa più denso.","Un fascio di luce lontano spazza il buio e scompare.","La mano stringe l'arma con più forza di prima.","Non si sentono più né cani né uccelli, solo il proprio battito.");
+TW.push("Un vetro si incrina sotto un piede.","Qualcosa gocciola sul collo, caldo e denso.","Una lampada oscilla e proietta ombre che sembrano muoversi.","Un colpo sordo arriva dal piano di sotto.","Un'esplosione lontana fa tremare i vetri.","Un odore di gas si insinua nelle narici.","Dal buio arriva un lamento, breve e roco.","Il telefono di un cadavere inizia a squillare.","Una scarica elettrica corre lungo i cavi scoperti.","Un bagliore improvviso mostra per un attimo una sagoma immobile.","Un tonfo secco proviene dal soffitto.","Il fiato si condensa in una nuvola bianca.");
+LOC[0].push("Un camion dei pompieri è incastrato contro una vetrina, con la scala ancora sollevata verso il cielo.","L'insegna al neon del cinema all'angolo è spezzata, e la locandina gronda di sangue.","Un parco giochi deserto dondola nel vento, con un'altalena macchiata di scuro.","Un ponte pedonale collega due palazzi in fiamme, e la struttura geme.");
+LOC[1].push("La sala interrogatori ha lo specchio incrinato e una sedia rovesciata al centro.","Nella sala stampa della polizia i giornali del giorno prima annunciano un'emergenza già sotto controllo.","Il parcheggio sotterraneo della stazione è pieno di volanti con le portiere spalancate.","L'infermeria della polizia ha le brande sfondate e i cassetti buttati a terra.");
+LOC[2].push("Un'antica cisterna delle fogne è mezza allagata, e il riflesso delle torce trema sul pelo dell'acqua.","Lungo un canale delle fogne galleggiano bidoni con il simbolo di Umbrella.","Un bivio delle fogne offre tre gallerie, tutte identiche e tutte troppo silenziose.","Una scala a chiocciola scende ancora più in basso, verso un rumore d'acqua che ribolle.");
+LOC[3].push("La sala d'attesa del pronto soccorso è piena di sedie rovesciate e cartelle cliniche sparse.","Il reparto di radiologia ha le lastre appese, e ognuna mostra qualcosa che non dovrebbe esistere.","Nella cappella dell'ospedale le panche sono state spostate a formare una barricata.","Un lungo corridoio di isolamento ha le vetrate appannate dall'interno.");
+LOC[4].push("Una serra sotterranea del laboratorio ospita piante enormi, con foglie che si muovono senza vento.","Nella sala server del laboratorio le ventole girano ancora e i led lampeggiano in verde.","Un corridoio del laboratorio è allagato da un sistema antincendio impazzito.","Una parete vetrata del laboratorio mostra una fila di capsule vuote, aperte dall'interno.");
+LOC[5].push("Il piazzale della stazione è ingombro di taxi abbandonati, con i lampeggianti ancora accesi.","La biglietteria della stazione ha i vetri infranti e la cassa aperta.","Nel sottopassaggio della stazione una lampadina penzola e getta una luce gialla e tremula.","In fondo al binario il segnale rosso lampeggia come un occhio che non si chiude.");
+TH.push(
+{w:"i ratti infetti",t:["Un fruscio di unghie sul cemento: dei ratti infetti sciamano verso {n}.","Occhi rossi nel buio: dei ratti infetti si arrampicano sulle gambe di {n}.","Un ratto infetto grosso come un gatto salta addosso a {n}.","Un'ondata di ratti infetti esce da un tombino e travolge {n}."]},
+{w:"gli scarafaggi mutanti",t:["Un tappeto scuro si muove sul soffitto: degli scarafaggi mutanti piovono su {n}.","Un crepitio di carapaci: gli scarafaggi mutanti escono dalle crepe e puntano {n}.","Uno scarafaggio mutante grosso come un pugno sale lungo la spalla di {n}.","Dal fondo di un condotto arriva un ronzio d'ali: degli scarafaggi mutanti si lanciano su {n}."]},
+{w:"lo zombi poliziotto",t:["Un agente zombificato, con il distintivo ancora appuntato, barcolla verso {n}.","Una torcia rotola sul pavimento, poi lo zombi poliziotto si getta su {n}.","Lo zombi poliziotto sbatte il manganello contro il muro e avanza su {n}.","Dalla porta entra uno zombi poliziotto con la pistola ancora nel fodero, e cerca {n}."]},
+{w:"il Brain Sucker",t:["Una creatura alata scende a testa in giù: un Brain Sucker resta sospeso sopra {n}.","Un Brain Sucker srotola la proboscide e la punta su {n}.","Il Brain Sucker si stacca dalla parete e plana silenzioso su {n}.","Un sibilo sottile: un Brain Sucker emerge dall'ombra e punta {n}."]},
+{w:"lo zombi gonfio",t:["Un corpo enorme e gonfio avanza a fatica: uno zombi gonfio si trascina verso {n}.","La pelle tesa di uno zombi gonfio pulsa, e ogni suo passo lascia una scia viscida davanti a {n}.","Un lamento gorgogliante: uno zombi gonfio sbarra il passaggio a {n}.","Lo zombi gonfio urta i muri e avanza su {n}, pronto a scoppiare."]},
+{w:"lo zombi scienziato",t:["Un camice bianco strappato entra nella luce: uno zombi scienziato si gira verso {n}.","Uno zombi scienziato, con il badge ancora al collo, punta {n} con occhi vitrei.","Un ex ricercatore infetto scavalca un tavolo di analisi e si getta su {n}.","Lo zombi scienziato lascia cadere una provetta e avanza verso {n}."]},
+{w:"il drone di sicurezza",t:["Un ronzio meccanico: un drone di sicurezza impazzito punta il laser su {n}.","Una voce sintetica ripete «intruso rilevato» mentre un drone di sicurezza si avvicina a {n}.","Un drone di sicurezza scende dal soffitto e inquadra {n}.","Il drone di sicurezza apre uno sportello e fa scattare una lama verso {n}."]},
+{w:"la torretta automatica",t:["Un clic secco: una torretta automatica ruota e inquadra {n}.","Una torretta automatica si attiva sopra la porta e prende di mira {n}.","La luce rossa di una torretta automatica si posa sul petto di {n}.","Dal muro sbuca una torretta automatica che segue ogni movimento di {n}."]}
+);
+OK.f.push("Il primo colpo apre la strada al secondo: {n} riesce ad abbattere {w}.","{n} trattiene il respiro, spara e mette {w} a terra.");
+OK.s.push("{n} striscia dietro un cumulo di casse e riesce a eludere {w}.","Un passo felpato dopo l'altro, {n} sfugge a {w} senza essere notato.");
+OK.r.push("{n} scatta tra due file di macerie e semina {w} in un dedalo di corridoi.","Senza voltarsi, {n} corre fino a lasciare {w} molto indietro.");
+OK.c.push("{n} trova una scala di servizio e sale, lasciando {w} ai piani inferiori.","Dietro un armadio ribaltato, {n} scopre un passaggio stretto che fa perdere le tracce a {w}.");
+OK.b.push("{n} incastra una sbarra tra le maniglie e la porta resiste ai colpi di {w}.","Con un divano trascinato a forza, {n} chiude il varco e tiene a bada {w}.");
+OK.e.push("{n} taglia una fune: un carico di detriti cala su {w}.","{n} apre una valvola e un getto di vapore investe {w}.");
+KO.push("{n} inciampa su un cavo e, nello scontro con {w}, incassa un colpo dritto al fianco.","Lo scontro con {w} va male: {n} incassa il colpo e arretra a denti stretti.","{n} para troppo tardi e, nello scontro con {w}, riporta un segno profondo sulla spalla.","Un passo falso, un'esitazione: nello scontro con {w}, {n} incassa un colpo che toglie il fiato.");
+KD.push("Il colpo di {w} è più rapido di qualsiasi riflesso: {n} cade e non si muove più.","{n} tenta un'ultima mossa disperata contro {w}, ma le forze finiscono e il buio si chiude.","Tra il fumo e le urla, {n} crolla sotto i colpi di {w}: nessun aiuto arriva in tempo.");
+K[0].v.push("Sparare una raffica al bersaglio","Prendere la mira e non sbagliare");
+K[1].v.push("Nascondersi dietro un ostacolo e attendere","Seguire il perimetro della stanza senza farsi notare");
+K[2].v.push("Puntare all'uscita e correre","Rompere ogni indugio e fuggire");
+K[3].v.push("Setacciare la zona in cerca di qualcosa di utile","Aprire armadietti e casse alla ricerca di aiuti");
+K[4].v.push("Chiudersi dietro una porta e rinforzarla","Ammassare mobili contro l'entrata");
+K[5].v.push("Usare un oggetto pesante come arma","Servirsi di un cavo scoperto contro il nemico");
+QP.push("{n} ha un solo respiro per decidere. Cosa fa?","Il tempo è finito per {n}: come reagisce?","{n} si guarda intorno, valuta e sceglie. Cosa tenta?","Tocca a {n} muoversi: qual è la scelta?","Ogni secondo conta per {n}. Che decisione prende?","Il cuore di {n} martella: cosa fa?");
+QB.push("{n} guarda il Tyrant negli occhi. Come affronta l'ultima sfida?","L'uscita è a pochi passi, ma il Tyrant sbarra la via a {n}. Cosa fa?");
+INTRO.push("La sirena del blackout ha spento la città. Vi trovate nel cuore di Raccoon City, con le torce accese e nessuna idea di dove andare.","Il ponte è crollato alle vostre spalle. Raccoon City è l'unica via, e la notte è appena iniziata.");
+SG["La sirena del blackout ha spento la città. Vi trovate nel cuore di Raccoon City, con le torce accese e nessuna idea di dove andare."]="La sirena del blackout ha spento la città. {n} si trova nel cuore di Raccoon City, con una torcia accesa e nessuna idea di dove andare.";
+SG["Il ponte è crollato alle vostre spalle. Raccoon City è l'unica via, e la notte è appena iniziata."]="Il ponte è crollato alle spalle di {n}. Raccoon City è l'unica via, e la notte è appena iniziata.";
+
+/* Scene di tregua: nessun nemico nella zona */
+const QT=[
+["Per una volta le strade sono vuote: nessun gemito, nessun movimento, solo il crepitio di un incendio lontano.","{n} attraversa un isolato immobile: le auto sono vuote e nessun mostro risponde ai passi.","Un tratto di strada è sorprendentemente libero: i morti sembrano essersi spostati altrove."],
+["La stazione di polizia è ferma e silenziosa: nessun nemico si muove tra le scrivanie.","Il corridoio davanti a {n} è libero: solo carte a terra e una radio che gracchia, ma nessuna minaccia.","Le stanze successive sono vuote: le uniche tracce dei mostri sono impronte insanguinate ormai secche."],
+["Nelle fogne c'è solo il gocciolio dell'acqua: nessuna creatura in vista, per ora.","Il tunnel davanti a {n} è libero, e il silenzio è quasi irreale.","Le gallerie sono deserte: qualsiasi cosa vivesse qui sembra essersi allontanata."],
+["Il reparto è vuoto: barelle ferme e monitor spenti, senza alcun nemico in vista.","{n} percorre un corridoio dell'ospedale senza incontrare nessuno, vivo o morto.","Le stanze dei pazienti sono silenziose: nessuna ombra si muove dietro le tende."],
+["Il laboratorio è immobile: gli esperimenti sono fuggiti o morti, e nessun nemico sbarra la strada.","Davanti a {n} si apre una sala pulita e silenziosa, con solo il ronzio dei macchinari.","Gli allarmi tacciono per un attimo: il livello è deserto e inquietantemente in ordine."],
+["La stazione è deserta: il fischio del treno è più vicino, e nessun mostro si vede sul percorso.","{n} percorre il binario libero: nessuna creatura, solo vetri infranti e vento.","Il tratto verso la locomotiva è sgombro: pare quasi una tregua concessa dalla notte."]];
+const QTW=["Il silenzio è quasi più inquietante dei ruggiti.","Solo il respiro riempie l'aria.","Da qualche parte, lontano, qualcosa si muove, ma non qui.","Nessuno sembra seguire i passi.","L'assenza di rumore fa sembrare ogni scricchiolio più forte.","Il vento porta odore di fumo, e nient'altro.","Le ombre restano immobili, per una volta.","Questa quiete non durerà a lungo."];
+const QS=["Dietro una porta blindata {n} trova una stanza sicura: una lampada fioca, una cassa di rifornimenti e una radio che gracchia piano.","{n} scopre un piccolo rifugio, con brande, una cassa metallica e una porta che si chiude dall'interno.","Un magazzino chiuso a chiave rivela un angolo tranquillo: coperte, scatole di cibo e un armadietto ancora intatto.","Una stanza di servizio è rimasta intatta: nessun mostro ha mai forzato la serratura.","Un locale tecnico offre un angolo riparato, con una cassetta di pronto soccorso appesa al muro."];
+const QQ=["Nessun nemico in vista. Cosa fa {n}?","{n} ha un momento di respiro: come lo usa?","La zona sembra sicura. Qual è la mossa di {n}?","Non c'è pericolo immediato per {n}. Che sceglie?","Un attimo di quiete: cosa decide {n}?","{n} può prendersi un po' di tempo. Che fa?"];
+const QQS=["Qui {n} è al sicuro. Come sfrutta il rifugio?","Una stanza sicura: cosa fa {n}?","{n} può riposare, frugare o ripartire. Che decide?"];
+const KQ=[
+{k:'x',v:["Perlustrare la zona con attenzione","Cercare provviste tra le stanze vuote","Frugare in ogni angolo alla ricerca di rifornimenti","Aprire armadietti e scatole rimasti intatti","Setacciare i dintorni con calma"]},
+{k:'p',v:["Riposare qualche minuto e fasciarsi le ferite","Sedersi, respirare e curarsi","Concedersi una pausa per riprendere le forze","Controllare le ferite e riposare"]},
+{k:'a',v:["Proseguire senza perdere tempo","Muoversi in fretta verso la zona successiva","Approfittare del silenzio per avanzare","Andare avanti senza fermarsi"]},
+{k:'i',v:["Ascoltare la radio e leggere gli appunti","Cercare documenti che spieghino cosa è successo","Guardarsi intorno in cerca di indizi","Studiare la mappa e i cartelli"]}];
+const KS=[{k:'x',v:["Aprire la cassa dei rifornimenti","Frugare nell'armadietto"]},{k:'p',v:["Riposare al sicuro e medicarsi","Fasciarsi le ferite con calma"]},{k:'a',v:["Ripartire ristorati","Uscire dal rifugio e riprendere la strada"]}];
+const QXO=["{n} rovista con calma e trova qualcosa di utile.","Sotto uno scaffale rovesciato {n} scopre un rifornimento dimenticato.","In un cassetto {n} trova ciò che cercava.","{n} apre una scatola intatta: dentro c'è qualcosa che può servire."];
+const QXN=["{n} cerca a lungo, ma trova solo scaffali vuoti e polvere.","Nulla di utile: qualcuno è passato prima di {n}.","{n} controlla ogni angolo, ma la zona è già stata svuotata."];
+const QXB=["Il pavimento cede sotto {n}, che precipita e sbatte con forza.","Un vetro sporgente taglia {n} mentre rovista.","{n} urta uno scaffale instabile, che crolla con un fragore assordante."];
+const QPO=["{n} riposa qualche minuto e si medica le ferite: le forze tornano.","Con garze e disinfettante trovati in giro, {n} si cura con calma.","Un breve sonno agitato basta a {n} per riprendere fiato."];
+const QPN=["{n} si concede una pausa, ma le mani tremano troppo per riposare davvero.","{n} prova a riposare, ma ogni rumore impedisce di chiudere occhio."];
+const QPZ=["{n} non ha ferite da curare: riprende fiato e controlla l'equipaggiamento.","Nessuna ferita da fasciare: {n} usa la pausa per radunare le forze."];
+const QA=["{n} attraversa la zona senza incontrare nessuno e raggiunge il varco successivo.","Passo dopo passo, {n} lascia alle spalle un tratto vuoto e silenzioso.","{n} approfitta della quiete per guadagnare terreno.","Nessun ostacolo sul cammino: {n} avanza rapido."];
+const QI=["Tra i documenti {n} trova appunti frettolosi: parlano di un treno che parte all'alba dalla stazione.","Una vecchia radio ripete un messaggio: «Evacuazione sospesa. Le uscite sono bloccate.»","Su una mappa strappata {n} vede segnato un percorso verso la stazione ferroviaria.","{n} legge un diario: qualcuno scrive di aver visto qualcosa uscire dai laboratori Umbrella.","Un cartello e qualche appunto suggeriscono a {n} dove può essere il prossimo passaggio."];
+/* ===== Estensione 2: eventi senza nemici, più frasi ===== */
+OP.push("Un giornale bagnato di pioggia rossa si appiccica alla suola.","Da una finestra chiusa filtra una vecchia canzone di Natale.","Un orologio fermo segna l'ora esatta del contagio.","Il fiato corto sa di polvere da sparo e paura.","Un brivido di febbre corre sulla nuca, ma è solo il freddo.","Sul muro, una scritta fresca: «NON FIDARTI DEI SILENZI».","La torcia sfarfalla, poi si stabilizza.","Un profumo di caffè vecchio sopravvive tra i miasmi.","Un cartello «Vietato l'ingresso» sembra quasi una beffa.","Le orecchie fischiano ancora dopo l'ultimo boato.");
+TW.push("Un telefono fisso squilla nel vuoto, tre volte, poi tace.","Una crepa si allarga lungo il muro con un suono secco.","Un'ombra sfila dietro una tenda e non si rivede.","Un cigolio ritmico arriva da qualche piano più su.","La radio sputa una cifra, poi solo fruscio.","Una pioggia di calcinacci cade dal soffitto.","Un odore di ozono annuncia un altro blackout.","Un rimbombo scuote il pavimento, poi torna il silenzio.","Un sacco appeso al soffitto dondola senza vento.","Una figura si intravede in fondo al corridoio, poi svanisce.");
+QTW.push("Una goccia d'acqua batte il tempo, lenta.","Perfino le mosche sembrano essersi zittite.","Un cartello dondola su una catena, e nient'altro si muove.","Il buio non nasconde nulla, ma proprio questo inquieta.","Da lontano arriva l'eco di una sparatoria che qui non riguarda nessuno.","Il tempo sembra rallentare, ma la notte corre.");
+QT[0].push("Un quartiere residenziale attende, con le luci accese e le porte chiuse: nessuno risponde, nessuno attacca.","{n} costeggia una fila di case senza vedere un solo mostro, solo tende che si muovono piano.");
+QT[1].push("Il piano superiore della stazione è vuoto: solo una tazza di caffè ancora tiepida su una scrivania.","{n} attraversa una sala riunioni deserta, con le sedie in cerchio e i fascicoli aperti.");
+QT[2].push("Un tratto di fogna asciutto e sgombro permette a {n} di camminare senza sguazzare nel fango.","Le pareti del condotto sono coperte di vecchi graffiti che nessuna creatura ha mai disturbato.");
+QT[3].push("Il corridoio dell'ospedale è illuminato da una luce verdastra: nessun nemico, solo il ronzio dei neon.","{n} si ferma davanti a un reparto in ordine perfetto, come se il contagio non l'avesse sfiorato.");
+QT[4].push("Una sala di controllo si apre davanti a {n}: monitor spenti, sedie vuote, nessuna minaccia.","Il laboratorio ha un piano tranquillo, dove le provette riposano ancora in ordine sugli scaffali.");
+QT[5].push("Un vagone passeggeri intatto si offre a {n}: sedili puliti, finestrini appannati, nessun mostro.","Il tratto di binario sembra addormentato, con l'erba che spunta tra le traversine.");
+QS.push("Una cabina telefonica blindata offre a {n} un riparo improvvisato e una cassetta di pronto soccorso.","Dietro un pannello finto {n} scopre un bunker con acqua, coperte e una lampada che funziona.","Un ufficio chiuso dall'interno ha la serratura intatta: dentro c'è un divano e una scorta di cibo.");
+QQ.push("Nessuno alle calcagna: come impiega {n} questa calma?","Per {n} è un momento raro. Cosa sceglie?");
+KQ[0].v.push("Ispezionare gli scaffali con calma","Sollevare coperte e cuscini in cerca di scorte");
+KQ[1].v.push("Bendarsi e bere un sorso d'acqua","Chiudere gli occhi per un minuto");
+KQ[2].v.push("Ripartire a passo cauto","Approfittare della pausa per avanzare");
+KQ[3].v.push("Leggere i fogli sparsi sul pavimento","Sbirciare tra i messaggi in segreteria");
+QXO.push("Dietro un pannello {n} scopre un piccolo deposito dimenticato.","Una cassetta degli attrezzi rivela a {n} qualcosa di utile.","{n} solleva un tappeto e trova una botola con dei rifornimenti.");
+QXN.push("{n} rovista dappertutto, ma trova solo cartacce e vetri rotti.","Ogni cassetto è già stato svuotato: {n} se ne va a mani vuote.");
+QXB.push("Un cavo scoperto sfiora {n} con una scintilla dolorosa.","Un pezzo di soffitto cede e colpisce {n} alla spalla.");
+QPO.push("Un sorso d'acqua e qualche minuto di silenzio: {n} sente le forze tornare.","{n} si fascia con cura e respira meglio.");
+QA.push("Un passo dopo l'altro, {n} lascia la calma alle spalle e riparte.","{n} avanza senza rumore, scivolando da una porta all'altra.");
+QI.push("Un fax dimenticato descrive l'emergenza: «Ogni contatto va considerato letale».","Sulla lavagna qualcuno ha scritto: «I laboratori sono sotto la città».","Un biglietto scarabocchiato indica un passaggio segreto verso la stazione.");
+/* Eventi: situazioni non combattive con scelta e conseguenze. o=[testo scelta, esito buono, esito cattivo, prob. successo, oggetto se buono, ferita se cattivo] */
+const EV=[
+{t:"Da dietro un armadio una voce roca sussurra: un sopravvissuto ferito chiede aiuto a {n}.",q:"Come risponde {n}?",o:[["Avvicinarsi e aiutarlo","{n} lo medica alla meglio e l'uomo, grato, indica un nascondiglio con delle scorte.","L'uomo è già infetto: {n} si ritrae, ma le sue unghie hanno già lasciato un graffio.",.6,1,1],["Passare oltre in silenzio","{n} si allontana senza voltarsi, con un peso sullo stomaco.","Il lamento attira qualcosa nell'ombra: {n} deve andarsene di corsa.",.75,0,0]]},
+{t:"Una porta blindata con tastierino luminoso sbarra il passaggio a {n}. Accanto, un post-it giallo ripete un codice.",q:"Cosa decide {n}?",c:[1,3,4],o:[["Digitare il codice del post-it","Il pannello si sblocca con uno scatto: dietro la porta c'è una piccola scorta.","Il pannello ronza e una scarica sfiora {n}.",.55,1,1],["Cercare un'altra strada","{n} scova un passaggio di servizio e lo attraversa senza problemi.","Il giro è lungo e inutile: {n} torna al punto di partenza.",.6,0,0]]},
+{t:"Una radio a manovella gracchia una frequenza militare: {n} può provare a rispondere.",q:"Che fa {n}?",o:[["Rispondere al segnale","Una voce lontana comunica la posizione di un deposito e promette di aspettare.","È solo disturbo, e la voce che risponde sembra quella di un morto.",.5,1,0],["Spegnere la radio","{n} preferisce il silenzio, che almeno non mente.","La batteria è ormai consumata: nulla di utile.",.9,0,0]]},
+{t:"Un corridoio è invaso da fiamme basse: l'unico passaggio per {n} è attraverso il fumo.",q:"Come procede {n}?",o:[["Attraversare di corsa","{n} passa a testa bassa e sbuca dall'altra parte tossendo.","Il fumo brucia gli occhi: {n} inciampa e si scotta.",.6,0,1],["Cercare un estintore","{n} trova un estintore e apre un varco tra le fiamme.","L'estintore è scarico: {n} deve tornare indietro a mani vuote.",.55,1,0]]},
+{t:"Una passerella sospesa oscilla sopra il vuoto: dall'altra parte, qualcosa luccica davanti a {n}.",q:"Cosa fa {n}?",c:[0,2,4],o:[["Attraversare piano","{n} arriva dall'altra parte e raccoglie ciò che luccicava.","Un'asse cede e {n} si aggrappa a un cavo a costo di uno strappo.",.6,1,1],["Lasciar perdere","Nessun tesoro vale una caduta: {n} torna sui suoi passi.","{n} si volta, ma il cigolio della struttura si sente ancora a lungo.",.9,0,0]]},
+{t:"Un distributore automatico ancora acceso ronza in un angolo: dentro restano lattine e barrette. {n} lo guarda.",q:"Come agisce {n}?",o:[["Forzare lo sportello","Lo sportello cede e {n} recupera qualcosa di utile.","Lo sportello si incastra e {n} si taglia le dita.",.6,1,1],["Scuotere la macchina","Con un tonfo una lattina rotola giù: è già qualcosa.","Il rumore rimbomba nel corridoio e non cade niente.",.5,0,0]]},
+{t:"Un registratore a nastro giace su una scrivania, con il tasto play premuto a metà. {n} si avvicina.",q:"Che decide {n}?",o:[["Ascoltare la registrazione","Un ricercatore descrive dove ha nascosto un kit prima di fuggire: {n} lo recupera.","Il nastro è rovinato e gracchia soltanto: {n} perde tempo.",.65,1,0],["Portarlo via senza ascoltare","{n} lo infila nello zaino e va avanti: forse servirà.","Il registratore si spezza in tasca e produce solo un sibilo.",.7,0,0]]},
+{t:"Un carillon rotto suona una filastrocca in una stanza vuota, e la melodia pare rivolta a {n}.",q:"Come reagisce {n}?",c:[3,4],o:[["Fermare il carillon","{n} ne toglie la molla: il silenzio torna, e con lui il coraggio.","Il meccanismo scatta e {n} si ferisce un dito.",.7,0,1],["Andarsene subito","{n} lascia la stanza a passo svelto, senza mai voltarsi.","La melodia segue {n} fino al corridoio: nessun danno, solo tensione.",.9,0,0]]},
+{t:"Un cane randagio, magro ma sano, osserva {n} da lontano.",q:"Cosa tenta {n}?",c:[0,5],o:[["Offrirgli un po' di cibo","Il cane si avvicina e guida {n} verso un passaggio sicuro.","Il cane scappa spaventato e {n} resta a stomaco vuoto.",.7,1,0],["Restare fermo","Il cane si stufa e si allontana, senza abbaiare.","Il cane abbaia una volta e {n} rimane con il cuore in gola.",.6,0,0]]},
+{t:"Un ascensore di servizio è fermo al piano, con le porte socchiuse e la luce ancora accesa davanti a {n}.",q:"Che sceglie {n}?",c:[3,4],o:[["Salire e premere il pulsante","La cabina scende dolcemente e {n} guadagna un tratto di strada.","La cabina si blocca e {n} forza le porte, ferendosi.",.6,0,1],["Prendere le scale","{n} scende in silenzio e scorge una cassetta dimenticata su un pianerottolo.","Le scale sono ostruite: {n} perde tempo prezioso.",.6,1,0]]},
+{t:"Una valigetta con lucchetto è abbandonata su una panca: una targhetta riporta il simbolo di Umbrella e nulla più. {n} la osserva.",q:"Che fa {n}?",c:[1,3,4,5],o:[["Spaccare il lucchetto","Dentro c'è qualcosa di utile, ancora sigillato.","La valigetta è vuota: solo una foto di famiglia.",.55,1,0],["Lasciarla dov'è","{n} non tocca nulla: certe cose è meglio non aprirle.","{n} esita, poi capisce che sarebbe stato meglio prenderla.",.9,0,0]]},
+{t:"Un boato lontano fa tremare il pavimento. Una crepa corre lungo il muro accanto a {n}: la struttura potrebbe cedere.",q:"Cosa fa {n}?",o:[["Uscire subito","{n} lascia la stanza pochi secondi prima che il soffitto ceda alle sue spalle.","Un calcinaccio colpisce {n} durante la fuga.",.65,0,1],["Rinforzare il muro","{n} incastra un tavolo contro la crepa e guadagna tempo.","Il tavolo scivola e cade: {n} si ritira con qualche livido.",.5,1,1]]}
+];
+/* ===== Estensione 3: esiti dei combattimenti ===== */
+OK.f.push("Un lampo, un boato: {n} colpisce {w} nel punto giusto e non serve un secondo colpo.","{n} aspetta il momento giusto e fa fuoco su {w} a bruciapelo.","Il colpo di {n} rimbomba nel buio e mette {w} a terra.","Con la mano che non trema più, {n} punta e abbatte {w}.");
+OK.s.push("{n} si schiaccia contro il muro e lascia passare {w} a un palmo dal naso.","Una mossa lenta, un respiro trattenuto: {n} aggira {w} senza un fruscio.","{n} lancia un oggetto lontano e attira {w} da un'altra parte, liberando il passaggio.","Sfruttando il buio, {n} si sposta di ombra in ombra e sfugge a {w}.");
+OK.r.push("{n} salta un ostacolo, ne scavalca un altro e lascia {w} a masticare polvere.","Il fiato brucia, ma {n} non rallenta e lascia indietro {w}.","{n} chiude una porta alle spalle e corre finché il rumore di {w} si spegne.","Una scivolata, uno scatto: {n} imbocca una scorciatoia e semina {w}.");
+OK.c.push("Nel frugare, {n} fa cadere qualcosa che distrae {w}: il tempo di svignarsela.","{n} trova una grata e si infila dentro, lasciando {w} a grattare il ferro.","Tra gli scaffali, {n} scova un nascondiglio perfetto e riesce a sfuggire a {w}.","Un cassone rovesciato offre a {n} un riparo perfetto contro {w}.");
+OK.b.push("{n} ammassa casse e sedie contro l'ingresso: la barricata regge ai colpi di {w}.","Un armadio spostato di traverso basta a {n} per fermare {w}.","{n} blocca la maniglia con una sbarra e ascolta {w} arrancare dall'altra parte.","Le assi inchiodate da {n} reggono e tengono lontano {w}.");
+OK.e.push("{n} spinge un carrello giù per la rampa e travolge {w}.","{n} tende un cavo al momento giusto e fa inciampare {w}.","{n} apre un rubinetto di gas e una scintilla fa il resto: le fiamme respingono {w}.","{n} rovescia un fusto d'olio sulla strada di {w} e guadagna terreno.");
+const WOK={"Pistola 9mm":["Un colpo di 9mm: {n} centra {w} e il pericolo si allontana.","Due spari rapidi con la 9mm bastano a {n} per fermare {w}.","{n} stringe la pistola con entrambe le mani e mette {w} fuori gioco.","Il rinculo della 9mm è lieve: {n} prende la mira e abbatte {w}."],"Fucile a pompa":["Il fucile a pompa ruggisce: {n} spara a {w} da distanza ravvicinata.","Un colpo di pompa spazza via {w} in un istante.","{n} arma il fucile, e il boato rimbomba nel corridoio e per {w} è la fine.","La rosa di pallini investe {w} in pieno."],"Magnum":["Il rimbombo della Magnum fa tremare i vetri: {n} abbatte {w} con un solo colpo.","Un colpo di Magnum, secco e pesante: {n} atterra {w} senza esitare.","{n} sente il calcio della Magnum fino al gomito e mette a terra {w}.","La Magnum spara e l'eco riempie la stanza: {n} ha messo fine a {w}."],"Coltello":["{n} scivola di lato e colpisce {w} con il coltello.","Un affondo preciso: {n} pianta la lama e mette {w} fuori combattimento.","{n} para, ruota su un piede e colpisce {w} con il coltello.","Corpo a corpo, sangue e sudore: {n} riesce a battere {w} con la lama."]};
+const AFT=["L'eco si spegne lentamente.","Il silenzio, per un attimo, ritorna.","Le mani tremano ancora, ma il pericolo è passato.","Il sangue sul pavimento è già scuro.","Un respiro profondo, poi si riparte.","Il cuore batte forte nel petto.","Nessuno parla: c'è poco da dire.","L'odore acre della polvere resta nell'aria."];
+KO.push("Nello scontro con {w}, {n} riceve un colpo netto e un taglio brucia sul braccio.","{n} indietreggia troppo tardi e, nello scontro con {w}, riceve un colpo alle costole.","Un urto violento contro il muro: nello scontro con {w}, {n} perde il fiato.","{n} sente qualcosa strapparsi durante lo scontro con {w}.","Il piano fallisce: nello scontro con {w}, un colpo raggiunge {n} alla schiena.","{n} cade in ginocchio sotto un colpo di {w}, ma riesce a rialzarsi.","La mira di {n} è corta e la risposta di {w} è un colpo secco.","{n} scivola di lato, ma un colpo di {w} arriva comunque di striscio, e fa male.");
+const KOK=["Il coltello di {n} sfiora appena {w}: la risposta è un colpo brutale.","Affrontare {w} con una lama è un rischio: {n} lo scopre a caro prezzo.","{n} tenta un affondo, ma contro {w} la lama è troppo corta e il contraccolpo fa male.","La lama scivola nella mano di {n}, e lo scontro con {w} prende una brutta piega."];
+const AFK=["Il dolore arriva in ritardo, come un'onda.","Sul braccio si allarga una chiazza scura.","{n} stringe i denti per non gridare.","Il sapore di ferro riempie la bocca.","Le ginocchia tremano, ma {n} resta in piedi.","Il mondo gira per un attimo, poi si ferma."];
+KD.push("Contro {w} non c'è scampo: {n} non ha nemmeno il tempo di gridare.","Il colpo di {w} è definitivo: {n} si accascia e la torcia rotola via, spegnendosi.","{n} prova a rialzarsi, ma nello scontro con {w} non c'è una seconda occasione.","Un rantolo, poi silenzio: {n} non sopravvive allo scontro con {w}.","Tra le macerie, {n} allunga una mano verso l'uscita e non la raggiunge mai.","Da {w} non c'è scampo: {n} cade e il buio inghiotte ogni cosa.");
+/* ===== Motore narrativo locale: nessuna AI esterna, gratuito e infinito ===== */
+const GEN_A=[["Un odore","Un lezzo","Una puzza"],["di bruciato","di disinfettante","di muffa","di ozono","di sangue secco","di gomma fusa","di carne avariata"],["si mescola all'aria stantia.","invade il corridoio.","sale dal pavimento.","aleggia sulle scale.","ristagna tra i muri."]];
+const GEN_B=[["Un rumore","Un suono","Un brusio"],["di passi","di vetri infranti","di unghie sul metallo","di catene","di sussurri","di ferraglia"],["arriva da lontano.","rimbalza tra i muri.","si spegne all'improvviso.","si fa più vicino.","gela il sangue."]];
+const GEN_C=[["La luce","Il neon","La lampada","Un faro"],["tremola","si spegne e si riaccende","vira al rosso","proietta ombre lunghe","sfarfalla"],["sopra il corridoio.","sulle scale.","nella stanza.","nel vicolo.","lungo la strada."]];
+const GEN_D=[["La pioggia batte contro","Il vento sferza","La nebbia avvolge","Il fumo copre"],["le finestre di Raccoon City.","le strade deserte.","i tetti e i muri.","i vicoli senza luce."]];
+const gen=()=>{const g=R([GEN_A,GEN_B,GEN_C,GEN_D]);return g.map(x=>R(x)).join(" ")};
+const WND1=["La ferita di {n} brucia a ogni passo.","{n} sente il dolore dell'ultimo colpo, ma stringe i denti.","Una fitta ricorda a {n} che l'ultimo scontro è costato caro."];
+const WND2=["Il sangue sporca la mano di {n}: ogni passo costa fatica.","{n} avanza a fatica, con il fiato spezzato e la vista che trema.","Il corpo di {n} chiede riposo, ma la notte non concede tregua."];
+const STK=["Dopo tanti scontri superati, {n} comincia a credere di potercela fare.","La fortuna sembra dalla parte di {n}, almeno per ora.","{n} ha imparato a muoversi in questo inferno: la paura c'è, ma ora la guida."];
+const LOWA=["Il caricatore di {n} è quasi vuoto: ogni colpo conta.","{n} conta i proiettili rimasti: sono pochissimi.","L'arma tra le mani di {n} è ormai troppo leggera."];
+const DEAD=["Il ricordo di {d} accompagna {n} nel buio.","{n} pensa a {d}: non c'è tempo per il lutto.","Il vuoto lasciato da {d} pesa più di qualsiasi rumore."];
+const TIME=[["La notte è appena cominciata, e già sembra infinita.","Le prime ore della notte scorrono tra sirene lontane."],["Le ore passano e la città sembra non avere fine.","La luna alta illumina strade che nessuno percorre più."],["La mezzanotte è passata da un pezzo.","Le ore piccole portano con sé un gelo nuovo."],["L'alba è ancora lontana, ma il cielo comincia a farsi meno nero.","Un chiarore sottile si intravede a est."],["Il cielo schiarisce piano: la fine della notte è vicina.","Il vento porta con sé l'odore dell'alba."]];
+function echo(s,P){
+  if(Math.random()>.55)return null;
+  const c=[R(TIME[Math.min(4,Math.floor(s.turn/s.len*5))])];
+  if(P.h==1)c.push(R(WND1),R(WND1));if(P.h==2)c.push(R(WND2),R(WND2));
+  if((s.streak||0)>=3)c.push(R(STK));
+  if(P.w.some(w=>w.b>0&&w.a>0&&w.a<=2))c.push(R(LOWA));
+  const d=s.p.find(x=>x.h>=3&&x!==P);if(d)c.push(R(DEAD).replace(/\{d\}/g,d.n),R(DEAD).replace(/\{d\}/g,d.n));
+  return R(c).replace(/\{n\}/g,P.n)}
+/* ===== Narratore AI locale: genera, controlla, corregge (gratuito, sul dispositivo) ===== */
+let AI=null,AIB=false,AIRUN=false,AIWANT=null;
+const AISYS="Sei il narratore di un horror a turni ambientato a Raccoon City. Riscrivi la scena in 2 o 3 frasi, in italiano corretto, al presente e in terza persona. Usa solo i fatti forniti. Non inventare personaggi, nomi, oggetti, nemici o luoghi. Non far morire nessuno. Non decidere cosa farà il personaggio: la scena finisce prima della sua scelta. Rispondi solo con la scena.";
+const AIEX=[{role:'user',content:"Personaggio: Marta (in salute)\nLuogo: Fogne\nNemico: i ratti infetti\nScena base: Un odore di muffa sale dal pavimento. Dal fondo del tunnel arriva uno sciame di ratti infetti."},{role:'assistant',content:"Nelle fogne l'odore di muffa sale dal pavimento e Marta avanza con cautela. Dal fondo del tunnel arriva uno sciame di ratti infetti, e il rumore delle zampe riempie il buio."}];
+const STOP=new Set("il lo la i gli le un uno una di a da in con su per tra fra e ed o ma che non si è sono ha hanno del della dei delle dello nel nella nei nelle al alla ai alle sul sulla come più ancora anche poi mentre quando ogni suo sua suoi sue questo questa".split(" "));
+const stem=w=>{w=w.replace(/^(lo|il|i|l'|la|le|gli) ?/,'').split(' ')[0].toLowerCase();return /[aeiou]$/.test(w)?new RegExp('\\b'+w.slice(0,-1)+'[aeio]\\b'):new RegExp('\\b'+w+'\\b')};
+function aiFacts(c){
+  const s=S,P=s.p[c.a],ch=Math.min(5,Math.floor(s.turn*6/s.len)),en=c.T&&c.T.w?c.T.w:null;
+  const al=s.p.filter((x,i)=>i!=c.a&&x.h<3).map(x=>x.n),de=s.p.filter(x=>x.h>=3).map(x=>x.n);
+  return{P,en,all:s.p.map(x=>x.n),txt:'Personaggio: '+P.n+' ('+ST[P.h].toLowerCase()+')\nLuogo: '+LN[ch]+'\n'+(en?'Nemico: '+en:'Nessun nemico presente: la zona è tranquilla')+(al.length?'\nCompagni vivi: '+al.join(', '):'')+(de.length?'\nCaduti: '+de.join(', '):'')+'\nScena base: '+c.txt}}
+/* Controllo di coerenza: restituisce l'elenco dei problemi (vuoto = testo valido) */
+function chk(t,f){
+  if(!t)return['testo vuoto'];
+  const p=[],lo=t.toLowerCase();let tn=t;f.all.forEach(n=>{tn=tn.split(n).join('Pg')});
+  const tl=tn.toLowerCase(),tk=tl.match(/[a-zàèéìòù']+/g)||[],ss=t.match(/[^.!?]+[.!?]+/g)||[];
+  if(t.length<90||t.length>480)p.push('lunghezza non adatta (90-480 caratteri)');
+  if(ss.length<2||ss.length>4||ss.join('').length<t.length-3)p.push('servono 2-4 frasi complete');
+  if(/[0-9{}<>\[\]*#_@\\\/|~^]/.test(tn)||/[\u0400-\u04ff\u3040-\u30ff\u4e00-\u9fff]/.test(tn))p.push('contiene simboli o caratteri estranei');
+  if(/\b(the|and|you|with|this|that|from|his|her)\b/.test(tl)||tk.filter(x=>STOP.has(x)).length/Math.max(1,tk.length)<.2)p.push('non è italiano corretto');
+  if(["il","lo","la","le","i","gli","di","e","a","un","una","che","con","in","per","del","della"].includes(tk[tk.length-1]))p.push('frase interrotta');
+  if(!lo.includes(f.P.n.toLowerCase()))p.push('deve nominare '+f.P.n);
+  const me=f.en?stem(f.en):null,sts=[...new Map(TH.map(x=>stem(x.w)).concat([stem(BOSS.w)]).map(r=>[r.source,r])).values()];
+  if(me&&!me.test(lo))p.push('deve nominare '+f.en);
+  sts.filter(r=>!me||r.source!==me.source).forEach(r=>{if(r.test(lo))p.push('non deve citare altri nemici')});
+  if(!f.en&&/\b(mostr|creatur|bestia|aggred|attacc)/.test(lo))p.push('in una zona tranquilla non ci sono nemici');
+  if(/\b(muore|morir|muoion|ucciso|uccisa|uccide|soccomb|spira)/.test(lo))p.push('nessuno deve morire');
+  if(f.P.h==0&&/\bferit/.test(lo))p.push(f.P.n+' non è ferito');
+  if(/\b(sceglie|decide di|deve scegliere|cosa farà)/.test(lo))p.push('non decidere le azioni del personaggio');
+  const ok=new Set(['pg','raccoon','city','umbrella','licker','hunter','tyrant','chimera','brain','sucker',...f.all.join(' ').toLowerCase().split(' '),...LN.join(' ').toLowerCase().split(' ')]);
+  ss.forEach(x=>{x=x.trim();const m=x.replace(/Pg/g,'pg').match(/[A-ZÀ-Ü][a-zà-ü]+/g)||[];(/^[A-ZÀ-Ü]/.test(x)?m.slice(1):m).forEach(w=>{if(!ok.has(w.toLowerCase()))p.push('nome inventato: '+w)})});
+  const cn={};tk.forEach(w=>{if(w.length>=5)cn[w]=(cn[w]||0)+1});if(Object.values(cn).some(v=>v>3)||/\b(\w{2,}) \1\b/.test(tl))p.push('parole ripetute');
+  return[...new Set(p)]}
+/* Ripara togliendo le frasi problematiche */
+function salvage(t,f){const ss=t.match(/[^.!?]+[.!?]+/g)||[];return ss.filter(x=>!chk(x.trim(),f).filter(y=>!/^(lunghezza|servono|deve nominare)/.test(y)).length).map(x=>x.trim()).join(' ')}
+async function aiGen(m){const o=await AI(m,{max_new_tokens:150,do_sample:true,temperature:.7,top_p:.9,repetition_penalty:1.1});return String(o[0].generated_text.at(-1).content||'').trim().replace(/\s*\n+\s*/g,' ')}
+async function aiRun(c){
+  const f=aiFacts(c),b=[{role:'system',content:AISYS},...AIEX,{role:'user',content:f.txt}];
+  let t=await aiGen(b),p=chk(t,f);
+  if(p.length){t=await aiGen([...b,{role:'assistant',content:t},{role:'user',content:'La scena ha questi problemi: '+p.join('; ')+'. Riscrivila correggendoli, usando solo i fatti forniti.'}]);p=chk(t,f)}
+  if(p.length){t=salvage(t,f);p=chk(t,f)}
+  return p.length?null:t}
+function aiWait(on){const el=document.querySelector('.story');if(!el)return;let w=el.querySelector('.aiw');if(on&&!w){w=document.createElement('div');w.className='aiw';w.textContent='✍ il narratore sta rifinendo la scena…';el.appendChild(w)}if(!on&&w)w.remove()}
+function aiPut(c){const el=document.querySelector('.story');if(!el||!c.ai||el.querySelector('.ai'))return;for(const n of el.childNodes)if(n.nodeType==3){n.nodeValue=c.ai;break}const d=document.createElement('div');d.className='ai';d.textContent='✍ scena rifinita dal narratore';const n=el.querySelector('.cnt');n?el.insertBefore(d,n):el.appendChild(d)}
+async function aiLoop(){while(AIWANT){const c=AIWANT;AIWANT=null;if(c.tried||!S||S.cur!==c)continue;c.tried=true;aiWait(1);let t=null;try{t=await aiRun(c)}catch(e){}aiWait(0);if(t){c.ai=t;if(S&&S.cur===c)aiPut(c)}}AIRUN=false}
+function aiLine(c){if(c.ai)return aiPut(c);if(!AI||c.tried)return;AIWANT=c;if(!AIRUN){AIRUN=true;aiLoop()}}
+async function aiToggle(on){
+  const st=document.getElementById('aiSt'),say=x=>{const e=document.getElementById('aiSt');if(e)e.textContent=x};
+  if(!on){AI=null;AIB=false;say('');return}
+  if(AI||AIB)return;AIB=true;
+  try{
+    say('Scarico il modello (solo la prima volta). Puoi giocare già ora.');
+    const m=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'),mod=(document.getElementById('aiM')||{}).value||'onnx-community/Qwen2.5-0.5B-Instruct';
+    let pipe=null;
+    for(const d of(navigator.gpu?['webgpu','wasm']:['wasm'])){try{pipe=await m.pipeline('text-generation',mod,{dtype:'q4',device:d,progress_callback:q=>{if(q.status==='progress')say('Download modello: '+Math.round(q.progress)+'%')}});break}catch(e){pipe=null}}
+    if(!pipe)throw 0;
+    AI=pipe;say('Narratore AI attivo.');if(S&&S.cur)aiLine(S.cur);
+  }catch(err){AIB=false;AI=null;say('Modello non disponibile: il gioco usa il motore narrativo normale.')}
+}
+const VAR=OP.length*LOC[0].length*(TH.length*4*TW.length*(cb(6,2)+cb(6,3)+cb(6,4))+QT[0].length*QTW.length*4);
+
+function setup(n=2){
+  document.querySelectorAll('#names input').forEach((x,i)=>NM[i]=x.value);
+  app.innerHTML=`<h1>Raccoon City<small>Notte del contagio</small></h1>
+  <p class="lead">Scegli quanti sopravvissuti guidare (da 1 a 8) e dai un nome a ciascuno. Ognuno ha il proprio zaino con armi e cure. Sopravvivete a tutti gli scontri e raggiungete il treno.</p>
+  <div class="row chips" role="group" aria-label="Numero di giocatori">${[1,2,3,4,5,6,7,8].map(k=>`<button class="chip ${k==n?'on':''}" onclick="setup(${k})">${k}</button>`).join('')}</div>
+  <div id="names">${Array.from({length:n},(_,i)=>`<input maxlength="16" aria-label="Nome ${i+1}" placeholder="Sopravvissuto ${i+1}" value="${e(NM[i]||'')}">`).join('')}</div>
+  <label class="lead" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="aiOn" ${(AI||AIB)?'checked':''} onchange="aiToggle(this.checked)"> <span>Narratore AI sul dispositivo: scrive, controlla e corregge la storia (gratuito, facoltativo)</span></label>
+  <select id="aiM" class="lead"><option value="onnx-community/Qwen2.5-0.5B-Instruct">Leggero (0.5B, circa 400 MB)</option><option value="onnx-community/Qwen2.5-1.5B-Instruct">Migliore (1.5B, circa 1 GB)</option></select><div id="aiSt" class="lead"></div>
+  <p class="lead">Nessuno sa quanto durerà la notte: lo deciderà il destino. Non ogni zona nasconde un nemico: ogni tanto si trova un attimo di tregua, o una situazione inattesa in cui scegliere.</p><p class="lead">${VAR.toLocaleString('it-IT')} scene diverse per ogni luogo.</p><button class="go" onclick="start(${n})">Inizia la notte</button>`;
+}
+function start(n){
+  const ins=[...document.querySelectorAll('#names input')];NM=ins.map(x=>x.value);
+  S={p:ins.map((x,i)=>({n:x.value.trim()||'Sopravvissuto '+(i+1),h:0,w:[{n:"Coltello",a:Infinity,b:0}],i:[]})),
+     turn:0,len:rollLen()+Math.max(0,n-4)*3,actor:-1,view:0,pick:null,tag:null,end:null};
+  SOLO=S.p.length==1;scene(R2(INTRO).replace(/\{n\}/g,S.p[0].n));
+}
+function scene(pre){
+  const s=S;let a=s.actor;if(s.tag)s.streak=s.tag[0]=='ok'?(s.streak||0)+1:0;
+  do{a=(a+1)%s.p.length}while(s.p[a].h>=3);
+  s.actor=a;s.view=a;s.pick=null;SOLO=aliveN()==1;const P=s.p[a],boss=s.turn==s.len-1;
+  const ch=Math.min(5,Math.floor(s.turn*6/s.len)),quiet=!boss&&s.turn>0&&!s.lastQ&&Math.random()<.28,safe=quiet&&Math.random()<.25;
+  s.lastQ=quiet;let T=null,opts,parts,q;
+  const evs=EV.filter(x=>!x.c||x.c.includes(ch)),ev=quiet&&!safe&&Math.random()<.4?R(evs):null;
+  if(ev){opts=ev.o.map(o=>({k:'v',r:0,t:o[0]}));parts=[pre,R2(OP),R2(LOC[ch]),ev.t.replace(/\{n\}/g,P.n),R2(QTW)];q=ev.q}
+  else if(quiet){
+    opts=(safe?KS:shuffle(KQ).slice(0,3)).map(o=>({k:o.k,r:0,t:R(o.v)}));
+    parts=[pre,R2(OP),R2(LOC[ch]),R2(safe?QS:QT[ch]).replace(/\{n\}/g,P.n),R2(QTW)];
+    q=R2(safe?QQS:QQ);
+  }else{
+    T=boss?BOSS:R(TH);
+    opts=shuffle(K).slice(0,2+Math.floor(Math.random()*3)).map(o=>({k:o.k,r:o.r,t:R(o.v)}));
+    if(!P.w.some(w=>w.b>0&&w.a>0))opts.forEach(o=>{if(o.k=='f')o.t=R(KNIFE)});
+    parts=[pre,R2(OP),R2(LOC[ch]),R2(T.t).replace(/\{n\}/g,P.n),R2(TW)];
+    q=R2(boss?QB:QP);
+  }
+  if(Math.random()<.4)parts[1]=gen();
+  const E=echo(s,P);if(E)parts[1]=E;
+  let txt=parts.join(" ");
+  if(txt.length>800)txt=parts.slice(0,4).join(" ");
+  if(txt.length>800)txt=[pre,parts[3]].join(" ");
+  if(txt.length>800)txt=txt.slice(0,797)+"...";
+  s.cur={a,T,opts,txt,q:q.replace(/\{n\}/g,P.n),quiet,safe,ev};draw();
+}
+function qpick(i){
+  if(S.cur.ev)return evpick(i);
+  const s=S,c=s.cur,o=c.opts[i],P=s.p[c.a],u=Math.random(),F=t=>t.replace(/\{n\}/g,P.n),item=()=>" "+P.n+" trova: "+R(LT)(P)+".";let txt;
+  s.tag=['ok','Tregua'];
+  if(o.k=='x'){
+    if(c.safe||u<.55)txt=F(R(QXO))+item();
+    else if(u<.85||P.h>=2)txt=F(R(QXN));
+    else{P.h++;s.tag=['ko','Imprevisto'];txt=F(R(QXB))+" Condizioni di "+P.n+": "+ST[P.h].toLowerCase()+"."}
+  }else if(o.k=='p'){
+    if(P.h==0)txt=F(R(QPZ));
+    else if(c.safe||u<.7){P.h=Math.max(0,P.h-(c.safe?2:1));txt=F(R(QPO))+" Condizioni di "+P.n+": "+ST[P.h].toLowerCase()+"."}
+    else{s.tag=['ko','Nulla di fatto'];txt=F(R(QPN))}
+  }else if(o.k=='a')txt=F(R(QA))+(u<.15?item():"");
+  else txt=F(R(QI))+(u<.3?item():"");
+  after(txt);
+}
+const CT={di:["dello","del","dei","dell'","della","delle","degli"],da:["dallo","dal","dai","dall'","dalla","dalle","dagli"],a:["allo","al","ai","all'","alla","alle","agli"],su:["sullo","sul","sui","sull'","sulla","sulle","sugli"]},AR=["lo ","il ","i ","l'","la ","le ","gli "];
+function fill(t,P,T){
+  t=t.replace(/(^|[^A-Za-zÀ-ÿ'])(di|da|a|su) \{w\}/g,(m,x,p)=>{const k=AR.findIndex(y=>T.w.startsWith(y));return x+(k<0?p+" "+T.w:CT[p][k]+(AR[k].endsWith("'")?"":" ")+T.w.slice(AR[k].length))});
+  return t.replace(/\{n\}/g,P.n).replace(/\{w\}/g,T.w).replace(/\{W\}/g,cap(T.w)).replace(/(^|[.!?] )([a-zàèéìòù])/g,(m,a,b)=>a+b.toUpperCase())}
+function gun(P,n,a,b){let g=P.w.find(x=>x.n==n);g?g.a+=a:P.w.push({n,a,b});return n+" (+"+a+" colpi)"}
+function itm(P,n,h){P.i.push({n,h});return n}
+const LT=[P=>gun(P,"Pistola 9mm",6,.15),P=>gun(P,"Fucile a pompa",4,.25),P=>gun(P,"Magnum",3,.3),P=>itm(P,"Spray medico",1),P=>itm(P,"Erba verde",1),P=>itm(P,"Kit di pronto soccorso",3),P=>itm(P,"Spray medico",1),P=>itm(P,"Erba verde",1)];
+function drop(P){
+  const s=S,n=s.p.length;let q=null;
+  for(let t=1;t<n;t++){const c=s.p[(s.actor+t)%n];if(c.h<3){q=c;break}}
+  if(!q)return"";
+  P.w.forEach(w=>{if(w.a===Infinity)return;const g=q.w.find(x=>x.n==w.n);g?g.a+=w.a:q.w.push(w)});
+  q.i.push(...P.i);P.w=[];P.i=[];return" "+q.n+" recupera il suo equipaggiamento."
+}
+function cut(t,n){if(t.length<=n)return t;const x=t.slice(0,n),i=Math.max(x.lastIndexOf(". "),x.lastIndexOf("! "),x.lastIndexOf("? "),x.lastIndexOf("» "));return i>80?x.slice(0,i+1):x.slice(0,n-1)+"…"}
+function evpick(i){
+  const s=S,c=s.cur,P=s.p[c.a],o=c.ev.o[i],F=t=>t.replace(/\{n\}/g,P.n);let txt;
+  if(Math.random()<o[3]){s.tag=['ok','Successo'];txt=F(o[1])+(o[4]?" "+P.n+" trova: "+R(LT)(P)+".":"")}
+  else{txt=F(o[2]);if(o[5]&&P.h<2){P.h++;s.tag=['ko','Imprevisto'];txt+=" Condizioni di "+P.n+": "+ST[P.h].toLowerCase()+"."}else s.tag=['ko','Nulla di fatto']}
+  after(txt);
+}
+function pick(i){
+  if(S.cur.quiet)return qpick(i);
+  const s=S,c=s.cur,o=c.opts[i],P=s.p[c.a],boss=s.turn==s.len-1,A0=aliveN();SOLO=A0==1;let bonus=o.k=='e'?.12:0,gn=null;
+  if(o.k=='f'){const g=P.w.filter(x=>x.a>0).sort((x,y)=>y.b-x.b)[0];gn=g.n;bonus=g.b||-.05;if(g.a!==Infinity)g.a--}
+  const p=.82-.18*o.r+bonus-(boss?.1:0),d=.03+.06*o.r+(P.h==2?.1:0)+(boss?.06:0),u=Math.random();let txt;
+  if(u<p){
+    s.tag=['ok','Successo'];txt=fill(o.k=='f'&&WOK[gn]&&Math.random()<.55?R(WOK[gn]):R2(OK[o.k]),P,c.T)+(Math.random()<.3?" "+R(AFT):"");
+    if(Math.random()<(o.k=='c'?.75:.4))txt+=" Nel frattempo "+P.n+" trova: "+R(LT)(P)+".";
+  }else if(u<p+d){
+    s.tag=['dead','Morte'];P.h=3;SOLO=A0<=2;txt=fill(R2(KD),P,c.T)+drop(P);
+  }else{
+    s.tag=['ko','Fallimento'];SOLO=A0==1||(P.h>=2&&A0==2);P.h++;txt=fill(gn=='Coltello'&&Math.random()<.4?R(KOK):R2(KO),P,c.T)+(P.h<3&&Math.random()<.4?" "+fill(R(AFK),P,c.T):"");
+    txt+=P.h>=3?" La ferita è fatale: "+P.n+" muore."+drop(P):" Condizioni di "+P.n+": "+ST[P.h].toLowerCase()+".";
+  }
+  after(txt);
+}
+function after(txt){
+  const s=S;
+  s.turn++;s.pick=null;
+  const alive=s.p.filter(x=>x.h<3);
+  if(!alive.length)s.end={win:false,txt:txt+(s.p.length==1?" Raccoon City ha ingoiato l'unico sopravvissuto.":" Raccoon City ha ingoiato anche l'ultimo sopravvissuto.")};
+  else if(s.turn>=s.len)s.end={win:true,txt:txt+" Il treno lascia Raccoon City tra le fiamme. "+(alive.length==1?"Sopravvissuto: ":"Sopravvissuti: ")+alive.map(x=>x.n).join(", ")+"."};
+  if(s.end){s.end.txt=s.end.txt.slice(0,800);draw()}else scene(cut(txt,420));
+}
+function sel(j){S.view=j;S.pick=null;draw()}
+function use(k){S.pick=S.pick===k?null:k;draw()}
+function heal(j){const o=S.p[S.view],it=o.i[S.pick],t=S.p[j];t.h=it.h>=3?0:Math.max(0,t.h-it.h);o.i.splice(S.pick,1);S.pick=null;draw()}
+function give(j){const o=S.p[S.view];S.p[j].i.push(o.i.splice(S.pick,1)[0]);S.pick=null;draw()}
+function draw(){
+  const s=S,c=s.cur,txt=s.end?s.end.txt:c.txt,V=s.p[s.view],cur=s.end?-1:c.a;
+  const party=s.p.map((p,j)=>`<button class="pc h${p.h}${j==cur?' cur':''}${j==s.view?' sel':''}" onclick="sel(${j})" aria-label="Zaino di ${e(p.n)}"><b>${e(p.n)}</b><span>${ST[p.h]}</span><div class="pips">${[0,1,2].map(k=>`<i class="${k<p.h?'f':''}"></i>`).join('')}</div></button>`).join('');
+  const tg=s.pick===null?'':`<div class="row">${s.p.flatMap((p,j)=>p.h>=3?[]:[p.h>0?`<button onclick="heal(${j})">${j==s.view?'Usa su di sé':'Cura '+e(p.n)}</button>`:'',j!=s.view?`<button class="alt" onclick="give(${j})">Dai a ${e(p.n)}</button>`:'']).join('')}</div>`;
+  const inv=`<div class="inv"><h3>Zaino di ${e(V.n)}</h3>${V.h<3?`${V.w.map(w=>`<p class="wp"><span>${e(w.n)}</span><span>${w.a===Infinity?'illimitato':w.a+' colpi'}</span></p>`).join('')}
+  ${V.i.length?V.i.map((it,k)=>`<div class="it"><span>${e(it.n)}</span><button onclick="use(${k})">${s.pick===k?'Annulla':'Usa / Dai'}</button></div>`).join(''):'<p class="lead">Nessun oggetto curativo.</p>'}${tg}`:(s.p.length==1?'<p class="lead">Fuori gioco.</p>':'<p class="lead">Fuori gioco: il suo equipaggiamento è passato a un compagno.</p>')}
+  ${s.p.length>1?'<p class="hint">Tocca un personaggio per aprire il suo zaino.</p>':''}</div>`;
+  let mid;
+  if(s.end)mid=`<h1>${s.end.win?'Evasione riuscita':'Game over'}</h1><button class="go" onclick="setup(${s.p.length})">Nuova partita</button>`;
+  else mid=`<p class="q">${e(c.q)}</p><div class="opts">${c.opts.map((o,i)=>`<button onclick="pick(${i})">${e(o.t)}</button>`).join('')}</div>`;
+  app.innerHTML=`<div class="bar"><span>Turno ${Math.min(s.turn+1,s.len)}</span><span>${LN[Math.min(5,Math.floor(Math.min(s.turn,s.len-1)*6/s.len))]}</span></div>
+  <div class="party">${party}</div>
+  <div class="story">${s.tag?`<span class="tag t-${s.tag[0]}">${s.tag[1]}</span><br>`:''}${e(txt)}<div class="cnt">${txt.length}/800</div></div>${mid}${inv}`;
+  if(s.cur&&!s.end)aiLine(s.cur);
+}
+setup(2);
+</script></body></html>
