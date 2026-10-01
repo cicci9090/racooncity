@@ -328,11 +328,12 @@ async function aiToggle(on){
   try{
     say('Scarico il modello (solo la prima volta). Puoi giocare già ora.');
     const m=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'),mod=(document.getElementById('aiM')||{}).value||'onnx-community/Qwen2.5-0.5B-Instruct';
-    let pipe=null;
-    for(const d of(navigator.gpu?['webgpu','wasm']:['wasm'])){try{pipe=await m.pipeline('text-generation',mod,{dtype:'q4',device:d,progress_callback:q=>{if(q.status==='progress')say('Download modello: '+Math.round(q.progress)+'%')}});break}catch(e){pipe=null}}
-    if(!pipe)throw 0;
+    let pipe=null;const errs=[];
+    const cfg=[...(navigator.gpu?[['webgpu','q4f16'],['webgpu','q4']]:[]),['wasm','q4'],['wasm','q8']];
+    for(const[d,t]of cfg){try{say('Avvio del modello ('+d+', '+t+')…');pipe=await m.pipeline('text-generation',mod,{dtype:t,device:d,progress_callback:q=>{if(q.status==='progress')say('Download modello: '+Math.round(q.progress)+'%')}});say('Test del modello…');await pipe([{role:'user',content:'Ciao'}],{max_new_tokens:2});break}catch(e){pipe=null;errs.push(d+'/'+t+': '+String(e&&e.message||e).slice(0,90))}}
+    if(!pipe)throw errs.join(' | ');
     AI=pipe;say('Narratore AI attivo.');if(S&&S.cur)aiLine(S.cur);
-  }catch(err){AIB=false;AI=null;say('Modello non disponibile: il gioco usa il motore narrativo normale.')}
+  }catch(err){AIB=false;AI=null;say('Modello non disponibile. Dettaglio: '+String(err).slice(0,320)+' Il gioco usa il motore narrativo normale.')}
 }
 const VAR=OP.length*LOC[0].length*(TH.length*4*TW.length*(cb(6,2)+cb(6,3)+cb(6,4))+QT[0].length*QTW.length*4);
 
@@ -343,7 +344,7 @@ function setup(n=2){
   <div class="row chips" role="group" aria-label="Numero di giocatori">${[1,2,3,4,5,6,7,8].map(k=>`<button class="chip ${k==n?'on':''}" onclick="setup(${k})">${k}</button>`).join('')}</div>
   <div id="names">${Array.from({length:n},(_,i)=>`<input maxlength="16" aria-label="Nome ${i+1}" placeholder="Sopravvissuto ${i+1}" value="${e(NM[i]||'')}">`).join('')}</div>
   <label class="lead" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="aiOn" ${(AI||AIB)?'checked':''} onchange="aiToggle(this.checked)"> <span>Narratore AI sul dispositivo: scrive, controlla e corregge la storia (gratuito, facoltativo)</span></label>
-  <select id="aiM" class="lead"><option value="onnx-community/Qwen2.5-0.5B-Instruct">Leggero (0.5B, circa 400 MB)</option><option value="onnx-community/Qwen2.5-1.5B-Instruct">Migliore (1.5B, circa 1 GB)</option></select><div id="aiSt" class="lead"></div>
+  <select id="aiM" class="lead"><option value="onnx-community/Qwen2.5-0.5B-Instruct">Leggero (0.5B, circa 400 MB)</option><option value="onnx-community/Qwen2.5-1.5B-Instruct">Migliore (1.5B, circa 1 GB)</option><option value="HuggingFaceTB/SmolLM2-360M-Instruct">Minimo (360M, circa 250 MB, qualità bassa)</option></select><div id="aiSt" class="lead"></div>
   <p class="lead">Nessuno sa quanto durerà la notte: lo deciderà il destino. Non ogni zona nasconde un nemico: ogni tanto si trova un attimo di tregua, o una situazione inattesa in cui scegliere.</p><p class="lead">${VAR.toLocaleString('it-IT')} scene diverse per ogni luogo.</p><button class="go" onclick="start(${n})">Inizia la notte</button>`;
 }
 function start(n){
